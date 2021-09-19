@@ -12,9 +12,12 @@ const FOCUSED = "focusEnabledBy";
 const UNFOCUSED = "focusDisabledBy";
 
 const OVERRIDE = "focusOverride";
+
 const DATA_OVERRIDE = `data-focus-override`;
 
 const ORIGINAL_TABINDEX = "focusTabindex";
+
+const HAS_TABINDEX = "focusHasTabindex";
 
 let observer: MutationObserver;
 
@@ -94,12 +97,6 @@ function nodeHasState(node: HTMLElement): boolean {
 	return !!node.dataset[FOCUSED] || !!node.dataset[UNFOCUSED];
 }
 
-function assignOriginalTabIndex(node: HTMLElement) {
-	if (!nodeHasState(node)) {
-		node.dataset[ORIGINAL_TABINDEX] = node.tabIndex.toString();
-	}
-}
-
 export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 	// bail if this is the server
 	// not sure if document from $app/env can be used in non-sveltekit projects
@@ -113,11 +110,17 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
-		assignOriginalTabIndex(node);
+		if (!nodeHasState(node)) {
+			node.dataset[ORIGINAL_TABINDEX] = node.tabIndex.toString();
+			if (node.getAttribute("tabindex") === null) {
+				node.dataset[HAS_TABINDEX] = "false";
+			} else {
+				node.dataset[HAS_TABINDEX] = "true";
+			}
+		}
 
 		let focused: string[] = [];
 		let unfocused: string[] = [];
-
 		if (element.contains(node)) {
 			focused = assignFocused(node, id);
 			unfocused = dataIdList(node, UNFOCUSED);
@@ -125,7 +128,9 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 			unfocused = assignUnfocused(node, id);
 			focused = dataIdList(node, FOCUSED);
 		}
-		if (unfocused.length && !focused.length) {
+		const override = node.dataset[OVERRIDE];
+
+		if (unfocused.length && !focused.length && override !== "focus") {
 			node.tabIndex = -1;
 		}
 		if (focused.length) {
@@ -144,10 +149,15 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 		if (!nodeHasState(node)) {
 			const tabindex = +node.dataset[ORIGINAL_TABINDEX];
 			delete node.dataset[ORIGINAL_TABINDEX];
-			node.tabIndex = tabindex;
+			if (node.dataset[HAS_TABINDEX] === "false") {
+				node.removeAttribute("tabindex");
+			} else {
+				node.tabIndex = tabindex;
+			}
+			delete node.dataset[HAS_TABINDEX];
 			return;
 		}
-		if (!dataIdList(node, FOCUSED).length) {
+		if (!dataIdList(node, FOCUSED).length && node.dataset[OVERRIDE] !== "focus") {
 			node.tabIndex = -1;
 		}
 	}
