@@ -1,6 +1,14 @@
 {
-	"name": "focus-lock-svelte",
+	"name": "focus-svelte",
 	"version": "0.0.1",
+	"author": {
+		"name": "chance dinkins",
+		"email": "chanceusc@gmail.com"
+	},
+	"bugs": {
+		"url": "https://github.com/chanced/focus-svelte/issues"
+	},
+	"license": "MIT",
 	"scripts": {
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
