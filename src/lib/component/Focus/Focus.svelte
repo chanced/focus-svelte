@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { focus } from "$lib/action";
+	import { focus } from "../../action";
 	export let enabled: boolean;
 </script>
 
