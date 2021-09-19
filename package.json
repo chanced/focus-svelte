@@ -1,14 +1,24 @@
 {
 	"name": "focus-svelte",
 	"version": "0.0.1",
+	"license": "MIT",
 	"author": {
 		"name": "chance dinkins",
 		"email": "chanceusc@gmail.com"
 	},
+	"keywords": [
+		"focus",
+		"tabindex",
+		"focus trap",
+		"focus lock",
+		"accessibility",
+		"ada",
+		"svelte",
+		"sveltekit"
+	],
 	"bugs": {
 		"url": "https://github.com/chanced/focus-svelte/issues"
 	},
-	"license": "MIT",
 	"scripts": {
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
