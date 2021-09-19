@@ -1,1 +1,1 @@
-export {default} from "./Focus"
+export { default } from "./Focus";
