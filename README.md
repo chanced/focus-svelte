@@ -25,6 +25,10 @@ npm install -D focus-svelte
 # pnpm install -D focus-svelte
 ```
 
+## Example
+
+[https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48](https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48?version=3.42.6)
+
 ## Usage
 
 There is both an action and a component that can be utilized.
@@ -88,10 +92,6 @@ It is possible to have as many active focus locks as you'd like. Each lock is co
 so all elements within each lock will become tabbable.
 
 If you wish to override the behavior of an element, you can use `data-focus-override= "focus"` on an element.
-
-## Example
-
-[https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48](https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48?version=3.42.6)
 
 ## Contributing
 
