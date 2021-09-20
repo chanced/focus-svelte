@@ -43,6 +43,8 @@ If you wish to override the behavior of an element, you can set `data-focus-over
 
 There is both an action and a component that can be utilized.
 
+### action
+
 ```html
 <script>
 	import { focus } from "focus-svelte";
@@ -53,15 +55,17 @@ There is both an action and a component that can be utilized.
 </script>
 
 <button on:click="{toggleFocus}">{enabled ? "disable" : "enable"} focus</button>
+
 <div use:focus="{enabled}">
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </div>
+
 <div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
 ```
 
 #### With `assignAriaHidden`
 
-````html
+```html
 <script>
 	import { focus } from "focus-svelte";
 	let enabled = true;
@@ -74,7 +78,11 @@ There is both an action and a component that can be utilized.
 <div use:focus="{{enabled, assignAriaHidden: true}}">
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </div>
+
 <div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
+```
+
+## component
 
 ```html
 <script>
@@ -92,7 +100,7 @@ There is both an action and a component that can be utilized.
 </Focus>
 
 <div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
-````
+```
 
 **Note**: As the action needs an `HTMLElement`, the component version wraps your content within a `div`.
 
