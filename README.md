@@ -72,8 +72,8 @@ default behavior of the browser, the DOM is manipulated instead. All elements ou
 To keep track of changes after the trap is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
 through data attributes respective to environmental conditions.
 
-Once all focus traps are removed, the `MutationObserver` is stopped and all DOM elements properties are reset
-accordingly. If a focus trap later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
+Once all focus traps are removed, the `MutationObserver` is stopped and all DOM elements properties are reset.
+If a focus trap later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
 
 ## To-do
 
