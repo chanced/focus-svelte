@@ -4,7 +4,7 @@ Focus lock for [svelte](https://svelte.dev/) with zero dependencies.
 
 Enabling a focus lock sets all nodes not in an active focus lock to `-1`.
 If `assignAriaHidden` is enabled, when a focus lock becomes enabled, all
-elements outside of an active focus lock will have their
+elements outside of an active focus lock or their ancestory will have their
 [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute)
 attribute set to `"true"`.
 
