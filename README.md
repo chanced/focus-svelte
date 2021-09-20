@@ -103,7 +103,7 @@ There is both an action and a component that can be utilized.
 
 ### override
 
-If you wish to override the behavior of an element, you can set `data-focus-override="focus"` and it retain its original tabindex.
+If you wish to override the behavior of an element, you can set `data-focus-override="focus"` and it will retain its original tabindex.
 
 ## Contributing
 

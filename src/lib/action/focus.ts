@@ -179,9 +179,9 @@ export function focus(element: HTMLElement, opts: FocusOptions | boolean): Focus
 				shownBy = addIdToDataset(node, ARIA_SHOWN_BY, id);
 				hiddenBy = dataIdList(node, ARIA_HIDDEN_BY);
 			}
-			if (hiddenBy.length > 0 && shownBy.length === 0) {
+			if (hiddenBy.length > 0 && shownBy.length === 0 && node.dataset[OVERRIDE] !== "focus") {
 				node.setAttribute("aria-hidden", "true");
-			} else if (shownBy.length > 0) {
+			} else if (shownBy.length > 0 && node.dataset[OVERRIDE] !== "focus") {
 				const ariaHidden = node.getAttribute("aria-hidden");
 				if (ariaHiddenSet !== ariaHidden && ariaHidden !== "false") {
 					node.setAttribute("aria-hidden", "false");
