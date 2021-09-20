@@ -66,17 +66,14 @@ If you wish to override the behavior of an element, you can use `data-focus-over
 ## Explanation
 
 focus-svelte works a bit differently than other focus traps I've encounted.
-Instead than using an event listener to track user activity and manipulate the
-default behavior of the browser, the DOM is manipulated instead.
+Rather than using an event listener to track user activity and manipulating the
+default behavior of the browser, the DOM is manipulated instead. All elements outside of a trap have their `tabindex` set to `-1`.
 
-When a focus action/component is created, all elements within the DOM have data-attributes assigned to indicate their state.
-Each element's `tabindex` is assigned appropriately, depending on whether or not the element resides within a focus trap.
-
-To keep track of changes after the trap is enabled, a `MutationObserver` begins monitoring changes to the DOM and each nodes's state
+To keep track of changes after the trap is enabled, a `MutationObserver` monitors the DOM and each nodes's state
 is set or updated respective to environmental conditions.
 
-Once all focus traps are removed, the `MutationObserver` is stopped and all DOM elements properties are reset accordingly.
-If a focus trap becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
+Once all focus traps are removed, the `MutationObserver` is stopped and all DOM elements properties are reset
+accordingly. If a focus trap later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
 
 ## To-do
 
