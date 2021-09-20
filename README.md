@@ -1,6 +1,6 @@
 # focus-svelte
 
-focus-svelte is focus trap for [svelte](https://svelte.dev/) with zero dependencies.
+Focus trap for [svelte](https://svelte.dev/) with zero dependencies.
 
 ## Installation
 
