@@ -289,7 +289,7 @@ export function focus(element: HTMLElement, opts: FocusOptions | boolean): Focus
 		if (!unsubscribe) {
 			unsubscribe = mutations.subscribe(handleMutations);
 		}
-		assignStateToNodes(allNodes());
+		setTimeout(() => assignStateToNodes(allNodes()), 0);
 	}
 	function destroy() {
 		if (unsubscribe) {
