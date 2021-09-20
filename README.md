@@ -28,8 +28,7 @@ If a focus lock later becomes active, the `MutationObserver` is restarted and al
 
 It is possible to have as many active focus locks as you'd like.
 
-If you wish to override the behavior of an element,
-you can use `data-focus-override= "focus"` on an element.
+If you wish to override the behavior of an element, you can set `data-focus-override="focus"` and it retain its original tabindex.
 
 If `assignAriaHidden` is `true` (default: `false`), when a focus lock becomes enabled, all
 elements outside of an active lock or their ancestory have their
