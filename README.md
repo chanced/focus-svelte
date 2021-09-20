@@ -53,9 +53,8 @@ As the action needs an `HTMLElement`, the component version wraps your content w
 
 ### Multiple traps
 
-It is possible to have as many active focus traps as you'd like.
-
-Each trap is considered equal to its peers so all elements within each trap will become tabbable.
+It is possible to have as many active focus traps as you'd like. Each trap is considered equal to its peers
+so all elements within each trap will become tabbable.
 
 If you wish to override the behavior of an element, you can use `data-focus-override= "focus"` on an element.
 
