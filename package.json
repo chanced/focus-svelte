@@ -1,6 +1,6 @@
 {
 	"name": "focus-svelte",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"license": "MIT",
 	"author": {
 		"name": "chance dinkins",
@@ -36,15 +36,14 @@
 		"eslint": "^7.32.0",
 		"eslint-config-prettier": "^8.3.0",
 		"eslint-plugin-svelte3": "^3.2.1",
-		"nanoid": "^3.1.25",
 		"prettier": "^2.4.1",
 		"prettier-plugin-svelte": "^2.4.0",
 		"svelte": "^3.42.6",
 		"svelte-check": "^2.2.6",
 		"svelte-preprocess": "^4.9.4",
+		"svelte2tsx": "^0.4.6",
 		"tslib": "^2.3.1",
-		"typescript": "^4.4.3",
-		"svelte2tsx": "^0.4.6"
+		"typescript": "^4.4.3"
 	},
 	"type": "module"
 }

@@ -1,5 +1,4 @@
 import { readable } from "svelte/store";
-import { nanoid } from "nanoid";
 import type { Unsubscriber } from "svelte/store";
 
 export interface FocusAction {
@@ -103,9 +102,14 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 	if (typeof document === "undefined") {
 		return;
 	}
-	// id of the action
-	const id = nanoid();
-
+	// source https://stackoverflow.com/a/62504318/48266
+	const id = [...crypto.getRandomValues(new Uint8Array(7))]
+		.map(
+			(x, i) => (
+				(i = ((x / 255) * 61) | 0), String.fromCharCode(i + (i > 9 ? (i > 35 ? 61 : 55) : 48))
+			),
+		)
+		.join("");
 	function assignStateToNode(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
