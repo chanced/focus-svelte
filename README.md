@@ -75,6 +75,7 @@ There is both an action and a component that can be utilized.
 </script>
 
 <button on:click="{toggleFocus}">{enabled ? "disable" : "enable"} focus</button>
+
 <div use:focus="{{enabled, assignAriaHidden: true}}">
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </div>
