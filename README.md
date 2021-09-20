@@ -20,15 +20,14 @@ npm install -D focus-svelte
 
 focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and manipulating the
-default behavior of the browser, the DOM is manipulated instead. All elements outside of a lock have their `tabindex` set to `-1`.
+default behavior of the browser, the DOM is updated instead. All elements
+outside of a lock have their `tabindex` set to `-1`.
 
 To keep track of changes after the lock is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
 through data attributes respective to environmental conditions.
 
 Once all focus locks are disabled or removed, the `MutationObserver` is stopped and the elements' properties are reset.
 If a focus lock later becomes active, the `MutationObserver` is restarted and nodes are decorated accordingly.
-
-#### aria-hidden
 
 If `assignAriaHidden` is `true` (default: `false`), when a focus lock becomes enabled, all
 elements outside of an active lock or their ancestory have their
