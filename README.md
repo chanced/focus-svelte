@@ -2,6 +2,16 @@
 
 Focus lock for [svelte](https://svelte.dev/) with zero dependencies.
 
+## Installation
+
+```bash
+npm install -D focus-svelte
+# yarn add -D focus-svelte
+# pnpm install -D focus-svelte
+```
+
+## Expanation
+
 focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and manipulating the
 default behavior of the browser, the DOM is manipulated instead. All elements outside of a lock have their `tabindex` set to `-1`.
@@ -16,14 +26,6 @@ If `assignAriaHidden` is `true` (default: `false`), when a focus lock becomes en
 elements outside of an active lock or their ancestory have their
 [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute)
 attribute set to `"true"`.
-
-## Installation
-
-```bash
-npm install -D focus-svelte
-# yarn add -D focus-svelte
-# pnpm install -D focus-svelte
-```
 
 ## Example
 
