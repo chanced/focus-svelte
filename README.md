@@ -29,6 +29,8 @@ through data attributes respective to environmental conditions.
 Once all focus locks are disabled or removed, the `MutationObserver` is stopped and the elements' properties are reset.
 If a focus lock later becomes active, the `MutationObserver` is restarted and nodes are decorated accordingly.
 
+#### aria-hidden
+
 If `assignAriaHidden` is `true` (default: `false`), when a focus lock becomes enabled, all
 elements outside of an active lock or their ancestory have their
 [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute)
