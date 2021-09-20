@@ -60,7 +60,7 @@ There is both an action and a component that can be utilized.
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </div>
 
-<div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
+<input value={enabled ? "can't tab here" : "can be tabbed into!"} />
 ```
 
 #### With `assignAriaHidden`
@@ -80,7 +80,7 @@ There is both an action and a component that can be utilized.
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </div>
 
-<div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
+<input value={enabled ? "can't tab here" : "can be tabbed into!"} />
 ```
 
 ### component
@@ -100,7 +100,7 @@ There is both an action and a component that can be utilized.
 	<input value={enabled ? "focus is locked here" : "regular tabbable input"} />
 </Focus>
 
-<div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
+<input value={enabled ? "can't tab here" : "can be tabbed into!"} />
 ```
 
 **Note**: As the action needs an `HTMLElement`, the component version wraps your content within a `div`.
