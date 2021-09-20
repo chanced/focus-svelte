@@ -36,7 +36,7 @@ There is both an action and a component that can be utilized.
 <div><input value={enabled ? "can't tab here" : "can be tabbed into!"} /></div>
 ```
 
-### With `assignAriaHidden`
+#### With `assignAriaHidden`
 
 ````html
 <script>
