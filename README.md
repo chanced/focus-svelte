@@ -2,9 +2,18 @@
 
 Focus lock for [svelte](https://svelte.dev/) with zero dependencies.
 
-Enabling a focus lock sets all nodes not in an active focus lock to `-1`.
-If `assignAriaHidden` is `true` (defaults to `false`), when a focus lock becomes enabled, all
-elements outside of an active focus lock or their ancestory will have their
+focus-svelte works a bit differently than other focus locks I've encounted.
+Rather than using an event listener to track user activity and manipulating the
+default behavior of the browser, the DOM is manipulated instead. All elements outside of a lock have their `tabindex` set to `-1`.
+
+To keep track of changes after the lock is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
+through data attributes respective to environmental conditions.
+
+Once all focus locks are removed, the `MutationObserver` is stopped and all DOM elements properties are reset.
+If a focus lock later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
+
+If `assignAriaHidden` is `true` (default: `false`), when a focus lock becomes enabled, all
+elements outside of an active lock or their ancestory have their
 [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute)
 attribute set to `"true"`.
 
@@ -83,18 +92,6 @@ If you wish to override the behavior of an element, you can use `data-focus-over
 ## Example
 
 [https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48](https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48?version=3.42.6)
-
-## Explanation
-
-focus-svelte works a bit differently than other focus locks I've encounted.
-Rather than using an event listener to track user activity and manipulating the
-default behavior of the browser, the DOM is manipulated instead. All elements outside of a lock have their `tabindex` set to `-1`.
-
-To keep track of changes after the lock is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
-through data attributes respective to environmental conditions.
-
-Once all focus locks are removed, the `MutationObserver` is stopped and all DOM elements properties are reset.
-If a focus lock later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
 
 ## Contributing
 
