@@ -111,6 +111,7 @@ function generateId(): string {
 	if (usedIds.has(val)) {
 		return generateId();
 	}
+	usedIds.add(val);
 	return val;
 }
 
