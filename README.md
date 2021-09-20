@@ -26,7 +26,7 @@ To keep track of changes after the lock is enabled, a `MutationObserver` monitor
 through data attributes respective to environmental conditions.
 
 Once all focus locks are removed, the `MutationObserver` is stopped and all DOM elements properties are reset.
-If a focus lock later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
+If a focus lock later becomes active, the `MutationObserver` is restarted and nodes are decorated accordingly.
 
 #### aria-hidden
 
