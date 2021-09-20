@@ -5,17 +5,11 @@ export interface FocusAction {
 	update(enabled: boolean);
 	destroy();
 }
-
 const FOCUSED = "focusEnabledBy";
-
 const UNFOCUSED = "focusDisabledBy";
-
 const OVERRIDE = "focusOverride";
-
 const DATA_OVERRIDE = `data-focus-override`;
-
 const ORIGINAL_TABINDEX = "focusTabindex";
-
 const HAS_TABINDEX = "focusHasTabindex";
 
 let observer: MutationObserver;
@@ -97,8 +91,6 @@ function nodeHasState(node: HTMLElement): boolean {
 }
 
 export function focus(element: HTMLElement, enabled: boolean): FocusAction {
-	// bail if this is the server
-	// not sure if document from $app/env can be used in non-sveltekit projects
 	if (typeof document === "undefined") {
 		return;
 	}
