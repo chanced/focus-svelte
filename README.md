@@ -10,7 +10,7 @@ npm install -D focus-svelte
 # pnpm install -D focus-svelte
 ```
 
-## Expanation
+## Explanation
 
 focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and manipulating the
