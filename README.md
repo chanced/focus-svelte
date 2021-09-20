@@ -27,9 +27,6 @@ elements outside of an active lock or their ancestory have their
 [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute)
 attribute set to `"true"`.
 
-It is possible to have as many active focus locks as you'd like. If you wish to override the behavior of an element,
-you can use `data-focus-override= "focus"` on an element.
-
 ## Example
 
 [https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48](https://svelte.dev/repl/4b31b2f4a45c4ee08230f6d47d31db48?version=3.42.6)
@@ -90,6 +87,8 @@ There is both an action and a component that can be utilized.
 ````
 
 **Note**: As the action needs an `HTMLElement`, the component version wraps your content within a `div`.
+
+If you wish to override the behavior of an element, you can use `data-focus-override= "focus"` on an element.
 
 ## Contributing
 
