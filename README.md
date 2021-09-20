@@ -21,7 +21,7 @@ npm install -D focus-svelte
 focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and overriding the
 default behavior of the browser, the DOM is manipulated instead. All elements
-outside of a lock have their `tabindex` set to `-1`.
+outside of an active focus lock have their `tabindex` set to `-1`.
 
 To keep track of changes after the lock is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
 through data attributes respective to environmental conditions.
