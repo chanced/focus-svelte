@@ -1,17 +1,25 @@
 import { readable } from "svelte/store";
 import type { Unsubscriber } from "svelte/store";
 
+export interface FocusOptions {
+	enabled?: boolean;
+	assignAriaHidden?: boolean;
+}
+
 export interface FocusAction {
 	update(enabled: boolean);
+	update(opts: FocusOptions);
 	destroy();
 }
 const FOCUSED = "focusEnabledBy";
 const UNFOCUSED = "focusDisabledBy";
 const OVERRIDE = "focusOverride";
-const DATA_OVERRIDE = `data-focus-override`;
+const DATA_OVERRIDE = "data-focus-override";
 const ORIGINAL_TABINDEX = "focusTabindex";
 const HAS_TABINDEX = "focusHasTabindex";
-
+const ARIA_HIDDEN = "focusAriaHidden";
+const ARIA_HIDDEN_BY = "focusHiddenBy";
+const ARIA_SHOWN_BY = "focusShownBy";
 let observer: MutationObserver;
 
 const mutations = readable<MutationRecord[]>([], function (set) {
@@ -60,7 +68,7 @@ function removeIdFromDataset(node: HTMLElement, key: string, id: string) {
 	if (val === undefined) {
 		return [];
 	}
-	const result = val.split(" ").filter((v) => v !== id && v !== "");
+	const result = val.split(" ").filter((v) => v !== id && v.trim() !== "");
 
 	if (result.length === 0) {
 		delete node.dataset[key];
@@ -90,28 +98,36 @@ function nodeHasState(node: HTMLElement): boolean {
 	return !!node.dataset[FOCUSED] || !!node.dataset[UNFOCUSED];
 }
 
-// source https://stackoverflow.com/a/62504318/48266
+const usedIds = new Set<string>();
+
 function generateId(): string {
-	return [...crypto.getRandomValues(new Uint8Array(7))]
+	const val = [...crypto.getRandomValues(new Uint8Array(7))]
 		.map(
 			(x, i) => (
 				(i = ((x / 255) * 61) | 0), String.fromCharCode(i + (i > 9 ? (i > 35 ? 61 : 55) : 48))
 			),
 		)
 		.join("");
+	if (usedIds.has(val)) {
+		return generateId();
+	}
+	return val;
 }
 
-export function focus(element: HTMLElement, enabled: boolean): FocusAction {
+export function focus(element: HTMLElement, opts: FocusOptions | boolean): FocusAction {
+	const id = generateId();
+	let isEnabled = false;
+	let assignAriaHidden = false;
 	if (typeof document === "undefined") {
 		return;
 	}
 
-	const id = generateId();
 	function assignStateToNode(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
-		if (!nodeHasState(node)) {
+		const hasState = nodeHasState(node);
+		if (!hasState) {
 			node.dataset[ORIGINAL_TABINDEX] = node.tabIndex.toString();
 			if (node.getAttribute("tabindex") === null) {
 				node.dataset[HAS_TABINDEX] = "false";
@@ -122,13 +138,17 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 
 		let focused: string[] = [];
 		let unfocused: string[] = [];
-		if (element.contains(node)) {
+
+		const elementContainsNode = element.contains(node);
+
+		if (elementContainsNode) {
 			focused = assignFocused(node, id);
 			unfocused = dataIdList(node, UNFOCUSED);
 		} else {
 			unfocused = assignUnfocused(node, id);
 			focused = dataIdList(node, FOCUSED);
 		}
+
 		const override = node.dataset[OVERRIDE];
 
 		if (unfocused.length && !focused.length && override !== "focus") {
@@ -138,29 +158,81 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 		if (focused.length && node.tabIndex !== originalIndex) {
 			node.tabIndex = originalIndex;
 		}
+
+		if (assignAriaHidden) {
+			const nodeContainsElement = node.contains(element);
+
+			const existingHidden = node.getAttribute("aria-hidden");
+			if (!hasState) {
+				if (existingHidden) {
+					node.dataset[ARIA_HIDDEN] = existingHidden;
+				}
+			}
+			const ariaHiddenSet = node.dataset[ARIA_HIDDEN];
+
+			let hiddenBy: string[];
+			let shownBy: string[];
+			if (!nodeContainsElement && !elementContainsNode) {
+				hiddenBy = addIdToDataset(node, ARIA_HIDDEN_BY, id);
+				shownBy = dataIdList(node, ARIA_SHOWN_BY);
+			} else {
+				shownBy = addIdToDataset(node, ARIA_SHOWN_BY, id);
+				hiddenBy = dataIdList(node, ARIA_HIDDEN_BY);
+			}
+			if (hiddenBy.length > 0 && shownBy.length === 0) {
+				node.setAttribute("aria-hidden", "true");
+			} else if (shownBy.length > 0) {
+				const ariaHidden = node.getAttribute("aria-hidden");
+				if (ariaHiddenSet !== ariaHidden && ariaHidden !== "false") {
+					node.setAttribute("aria-hidden", "false");
+				}
+			}
+		}
 	}
 	function removeStateFromNode(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
-		if (element.contains(node)) {
-			removeFocused(node, id);
-		} else {
-			removeUnfocused(node, id);
-		}
-		if (!nodeHasState(node)) {
+		removeFocused(node, id);
+		removeUnfocused(node, id);
+		const { dataset } = node;
+		const hasState = nodeHasState(node);
+
+		if (!hasState) {
 			const tabindex = +node.dataset[ORIGINAL_TABINDEX];
-			delete node.dataset[ORIGINAL_TABINDEX];
-			if (node.dataset[HAS_TABINDEX] === "false") {
+			delete dataset[ORIGINAL_TABINDEX];
+			if (dataset[HAS_TABINDEX] === "false") {
 				node.removeAttribute("tabindex");
 			} else {
 				node.tabIndex = tabindex;
 			}
-			delete node.dataset[HAS_TABINDEX];
-			return;
-		}
-		if (!dataIdList(node, FOCUSED).length && node.dataset[OVERRIDE] !== "focus") {
+			delete dataset[HAS_TABINDEX];
+		} else if (!dataIdList(node, FOCUSED).length && node.dataset[OVERRIDE] !== "focus") {
 			node.tabIndex = -1;
+		}
+
+		if (assignAriaHidden) {
+			const hiddenBy = removeIdFromDataset(node, ARIA_HIDDEN_BY, id);
+			const shownBy = removeIdFromDataset(node, ARIA_SHOWN_BY, id);
+			const ariaHiddenSet = node.dataset[ARIA_HIDDEN];
+
+			if (shownBy.length > 0 && hiddenBy.length === 0) {
+				if (ariaHiddenSet) {
+					node.setAttribute("aria-hidden", ariaHiddenSet);
+				} else {
+					node.removeAttribute("aria-hidden");
+				}
+			}
+			if (!hasState) {
+				if (ariaHiddenSet) {
+					node.setAttribute("aria-hidden", ariaHiddenSet);
+				} else {
+					node.removeAttribute("aria-hidden");
+				}
+				delete dataset[ARIA_HIDDEN];
+				delete dataset[ARIA_HIDDEN_BY];
+				delete dataset[ARIA_SHOWN_BY];
+			}
 		}
 	}
 
@@ -201,8 +273,16 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 
 	const handleMutations = (mutations: MutationRecord[]) => mutations.forEach(handleMutation);
 
-	function update(enabled: boolean) {
-		if (!enabled) {
+	function update(opts: FocusOptions | boolean) {
+		if (typeof opts === "boolean") {
+			isEnabled = opts;
+			assignAriaHidden = false;
+		} else {
+			isEnabled = opts?.enabled;
+			assignAriaHidden = opts?.assignAriaHidden;
+		}
+
+		if (!isEnabled) {
 			return destroy();
 		}
 		if (!unsubscribe) {
@@ -217,8 +297,8 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 		}
 		removeStateFromNodes(allNodes());
 	}
-	if (enabled) {
-		update(enabled);
+	if (opts === true || (typeof opts === "object" && opts?.enabled)) {
+		update(opts);
 	}
 
 	return { update, destroy };

@@ -2,10 +2,10 @@
 	import { focus } from "../lib/action";
 
 	let container: HTMLDivElement;
-	let focused = false;
+	let enabled = false;
 
 	function toggleFocus() {
-		focused = !focused;
+		enabled = !enabled;
 	}
 	function generate() {
 		const list = ["div", "p", "input", "select", "textarea"];
@@ -24,10 +24,10 @@
 	}
 </script>
 
-<div class="container" bind:this={container} use:focus={focused}>
+<div class="container" bind:this={container} use:focus={{ enabled, assignAriaHidden: true }}>
 	<div style="display:flex">
 		<button on:click={generate}>generate element</button>
-		<button on:click={toggleFocus}> {focused ? "unfocus" : "focus"}</button>
+		<button on:click={toggleFocus}> {enabled ? "unfocus" : "focus"}</button>
 	</div>
 </div>
 
