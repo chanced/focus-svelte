@@ -69,8 +69,8 @@ focus-svelte works a bit differently than other focus traps I've encounted.
 Rather than using an event listener to track user activity and manipulating the
 default behavior of the browser, the DOM is manipulated instead. All elements outside of a trap have their `tabindex` set to `-1`.
 
-To keep track of changes after the trap is enabled, a `MutationObserver` monitors the DOM and each nodes's state
-is set or updated respective to environmental conditions.
+To keep track of changes after the trap is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
+through data attributes respective to environmental conditions.
 
 Once all focus traps are removed, the `MutationObserver` is stopped and all DOM elements properties are reset
 accordingly. If a focus trap later becomes active, the `MutationObserver` is restarted and all nodes are decorated accordingly.
