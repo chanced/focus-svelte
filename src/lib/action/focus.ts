@@ -90,18 +90,23 @@ function nodeHasState(node: HTMLElement): boolean {
 	return !!node.dataset[FOCUSED] || !!node.dataset[UNFOCUSED];
 }
 
-export function focus(element: HTMLElement, enabled: boolean): FocusAction {
-	if (typeof document === "undefined") {
-		return;
-	}
-	// source https://stackoverflow.com/a/62504318/48266
-	const id = [...crypto.getRandomValues(new Uint8Array(7))]
+// source https://stackoverflow.com/a/62504318/48266
+function generateId(): string {
+	return [...crypto.getRandomValues(new Uint8Array(7))]
 		.map(
 			(x, i) => (
 				(i = ((x / 255) * 61) | 0), String.fromCharCode(i + (i > 9 ? (i > 35 ? 61 : 55) : 48))
 			),
 		)
 		.join("");
+}
+
+export function focus(element: HTMLElement, enabled: boolean): FocusAction {
+	if (typeof document === "undefined") {
+		return;
+	}
+
+	const id = generateId();
 	function assignStateToNode(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
@@ -129,8 +134,9 @@ export function focus(element: HTMLElement, enabled: boolean): FocusAction {
 		if (unfocused.length && !focused.length && override !== "focus") {
 			node.tabIndex = -1;
 		}
-		if (focused.length) {
-			node.tabIndex = +node.dataset[ORIGINAL_TABINDEX];
+		const originalIndex = +node.dataset[ORIGINAL_TABINDEX];
+		if (focused.length && node.tabIndex !== originalIndex) {
+			node.tabIndex = originalIndex;
 		}
 	}
 	function removeStateFromNode(node: Node) {
