@@ -223,7 +223,8 @@ const allBodyNodes = (): NodeListOf<Element> => document.body.querySelectorAll("
 function noop() {}
 
 export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): FocusAction {
-	const key: Key = {};
+	const key = Object.freeze({});
+
 	let isEnabled = false;
 	let assignAriaHidden = false;
 
