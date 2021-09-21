@@ -21,13 +21,13 @@ npm install -D focus-svelte
 focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and overriding the
 default behavior of the browser, the DOM is manipulated instead. All elements
-outside of an active focus lock have their `tabindex` set to `-1`.
+outside of an active focus lock's descendants or ancestory have their
+`tabindex` set to `-1` if it was `0` or greater previously.
 
-To keep track of changes after the lock is enabled, a `MutationObserver` monitors the DOM for updates, assigning the node's state
-through data attributes respective to environmental conditions.
-
-Once all focus locks are disabled or removed, the `MutationObserver` is stopped and the elements' properties are reset.
-If a focus lock later becomes active, the `MutationObserver` is restarted and nodes are decorated accordingly.
+To keep track of changes after the lock is enabled, a `MutationObserver` monitors
+the DOM for updates. Once all focus locks are disabled or removed, the `MutationObserver`
+is stopped and the elements' properties are reset. If a focus lock later becomes active,
+the `MutationObserver` is restarted and nodes are decorated accordingly.
 
 #### aria-hidden
 
@@ -104,7 +104,8 @@ There is both an action and a component that can be utilized.
 
 ### override
 
-If you wish to override the behavior of an element, you can set `data-focus-override="focus"` and it will retain its original tabindex.
+If you wish to override the behavior of an element, you can set `data-focus-override="true"`
+and it will retain its original tabindex.
 
 ## Contributing
 

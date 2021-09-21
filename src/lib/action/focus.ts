@@ -6,20 +6,193 @@ export interface FocusOptions {
 	assignAriaHidden?: boolean;
 }
 
-export interface FocusAction {
-	update(enabled: boolean);
-	update(opts: FocusOptions);
-	destroy();
-}
-const FOCUSED = "focusEnabledBy";
-const UNFOCUSED = "focusDisabledBy";
 const OVERRIDE = "focusOverride";
-const DATA_OVERRIDE = "data-focus-override";
-const ORIGINAL_TABINDEX = "focusTabindex";
-const HAS_TABINDEX = "focusHasTabindex";
-const ARIA_HIDDEN = "focusAriaHidden";
-const ARIA_HIDDEN_BY = "focusHiddenBy";
-const ARIA_SHOWN_BY = "focusShownBy";
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type Key = {};
+
+class NodeState {
+	private tabIndexOriginAssigned!: number | null;
+	private tabIndexOriginValue!: number;
+	private tabIndexAssigned: number | null;
+	private override!: boolean;
+	private ariaHiddenOrigin: boolean | null;
+	private ariaHiddenAssignedValue: boolean | null;
+	private unfocusedBy: Set<Key>;
+	private focusedBy: Set<Key>;
+	private hiddenBy: Set<Key>;
+	private shownBy: Set<Key>;
+	private tag: string;
+	constructor(node: HTMLElement) {
+		this.shownBy = new Set();
+		this.hiddenBy = new Set();
+		this.focusedBy = new Set();
+		this.unfocusedBy = new Set();
+		this.updateTabIndexOrigin(node);
+		this.updateOverride(node);
+		this.tabIndexAssigned = null;
+		this.ariaHiddenOrigin = this.parseAriaHidden(node);
+		this.ariaHiddenAssignedValue = null;
+		this.tag = node.tagName;
+	}
+
+	private parseAriaHidden(node: HTMLElement): boolean | null {
+		let val = node.getAttribute("aria-hidden");
+		if (val === null || val === undefined) {
+			return null;
+		}
+		val = val.toLowerCase();
+		if (val === "true") {
+			return true;
+		}
+		if (val === "false") {
+			return false;
+		}
+		return null;
+	}
+
+	updateTabIndexOrigin(
+		node: HTMLElement,
+		value?: string | null,
+		oldValue?: string | null,
+	): boolean {
+		if (value !== undefined || oldValue !== undefined) {
+			const parsed = this.parseTabIndex(node, value);
+			if (this.tabIndexAssigned !== parsed) {
+				this.tabIndexOriginAssigned = parsed;
+				return true;
+			}
+			return false;
+		}
+		const tabIndex = node.tabIndex;
+		if (this.tabIndexOriginValue !== tabIndex) {
+			this.tabIndexOriginValue = tabIndex;
+			this.tabIndexOriginAssigned = this.parseTabIndex(node);
+			return true;
+		}
+		return false;
+	}
+
+	updateOverride(node: HTMLElement) {
+		const v = node.dataset[OVERRIDE]?.toLowerCase();
+		this.override = v === "true" || v === "focus";
+	}
+
+	assignAriaHidden(node: HTMLElement, assignAriaHidden: boolean) {
+		if (!assignAriaHidden) {
+			return;
+		}
+		if (this.shownBy.size) {
+			console.log("this.shownBy.size", this.shownBy.size);
+			this.ariaHiddenAssignedValue = false;
+		} else if (this.hiddenBy.size) {
+			this.ariaHiddenAssignedValue = true;
+		} else {
+			if (this.ariaHiddenAssignedValue !== null) {
+				if (this.ariaHiddenOrigin === null) {
+					node.removeAttribute("aria-hidden");
+					this.ariaHiddenAssignedValue = null;
+					return;
+				}
+				node.setAttribute("aria-hidden", this.ariaHiddenOrigin.toString());
+				return;
+			}
+		}
+		if (this.ariaHiddenAssignedValue !== null) {
+			node.setAttribute("aria-hidden", this.ariaHiddenAssignedValue.toString());
+		}
+	}
+	assignTabIndex(node: HTMLElement) {
+		if (this.focusedBy.size) {
+			if (this.tabIndexAssigned === -1 || node.tabIndex !== -1) {
+				this.tabIndexAssigned = 0;
+			} else {
+				return;
+			}
+		} else if (this.unfocusedBy.size) {
+			const parsed = this.parseTabIndex(node);
+			if (
+				(parsed !== null && parsed >= 0) ||
+				(this.tabIndexAssigned === null && this.tabIndexOriginValue >= 0) ||
+				this.tabIndexAssigned === 0
+			) {
+				this.tabIndexAssigned = -1;
+			} else {
+				return;
+			}
+		} else {
+			if (this.tabIndexAssigned !== null) {
+				if (this.tabIndexOriginAssigned === null) {
+					node.removeAttribute("tabindex");
+					this.tabIndexAssigned = null;
+					return;
+				}
+				node.tabIndex = this.tabIndexOriginAssigned;
+				this.tabIndexOriginAssigned = null;
+				return;
+			}
+		}
+		if (this.tabIndexAssigned !== null && node.tabIndex !== this.tabIndexAssigned) {
+			node.tabIndex = this.tabIndexAssigned;
+		}
+	}
+	addLock(key: Key, ariaHidden: boolean, node: HTMLElement, lockNode: HTMLElement) {
+		// presumably, any parent wouldn't be a focusable node.
+		// doing it this way makes it easier to compute aria-hidden
+		// as the calculations only need to run once
+		if (lockNode.contains(node) || node.contains(lockNode)) {
+			this.focusedBy.add(key);
+			this.unfocusedBy.delete(key);
+			if (ariaHidden) {
+				this.shownBy.add(key);
+				this.hiddenBy.delete(key);
+			}
+		} else {
+			this.unfocusedBy.add(key);
+			this.focusedBy.delete(key);
+			if (ariaHidden) {
+				this.hiddenBy.add(key);
+				this.shownBy.delete(key);
+			}
+		}
+	}
+
+	removeLock(key: Key) {
+		this.focusedBy.delete(key);
+		this.unfocusedBy.delete(key);
+		this.hiddenBy.delete(key);
+		this.shownBy.delete(key);
+	}
+
+	private parseTabIndex(node: HTMLElement, value?: string | null): number | null {
+		if (value === undefined) {
+			value = node.getAttribute("tabindex");
+		}
+		if (value == null) {
+			value = "";
+		}
+		value = value.trim();
+		if (value === "") {
+			return null;
+		}
+		const parsed = parseInt(value);
+		if (isNaN(parsed)) {
+			return null;
+		}
+		return parsed;
+	}
+}
+
+let state: WeakMap<HTMLElement, NodeState>;
+
+export interface FocusAction {
+	update(enabled: boolean): void;
+	update(opts: FocusOptions): void;
+	destroy(): void;
+}
+// const OVERRIDE = "focusOverride";
+// const DATA_OVERRIDE = "data-focus-override";
+
 let observer: MutationObserver;
 
 const mutations = readable<MutationRecord[]>([], function (set) {
@@ -32,10 +205,9 @@ const mutations = readable<MutationRecord[]>([], function (set) {
 			set(mutations);
 		});
 	}
-
 	observer.observe(document.body, {
 		attributes: true,
-		attributeFilter: ["tabindex", DATA_OVERRIDE], //DATA_FOCUSED, DATA_UNFOCUSED,
+		attributeFilter: ["tabindex", "aria-hidden"],
 		attributeOldValue: true,
 		childList: true,
 		subtree: true,
@@ -45,226 +217,93 @@ const mutations = readable<MutationRecord[]>([], function (set) {
 	};
 });
 
-function allNodes(): NodeListOf<Element> {
-	return document.querySelectorAll("*");
-}
+const allBodyNodes = (): NodeListOf<Element> => document.body.querySelectorAll("*");
 
-function dataIdList(node: HTMLElement, key: string): string[] {
-	return (node.dataset[key] || "").split(" ").filter((v) => v);
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}
 
-function addIdToDataset(node: HTMLElement, key: string, id: string) {
-	const list = dataIdList(node, key);
-	if (!list.includes(id)) {
-		list.push(id);
-	}
-
-	node.dataset[key] = list.join(" ");
-	return list;
-}
-
-function removeIdFromDataset(node: HTMLElement, key: string, id: string) {
-	const val = node.dataset[key];
-	if (val === undefined) {
-		return [];
-	}
-	const result = val.split(" ").filter((v) => v !== id && v.trim() !== "");
-
-	if (result.length === 0) {
-		delete node.dataset[key];
-		return result;
-	}
-	node.dataset[key] = result.join(" ");
-	return result;
-}
-
-function assignFocused(node: HTMLElement, id: string) {
-	return addIdToDataset(node, FOCUSED, id);
-}
-
-function assignUnfocused(node: HTMLElement, id: string) {
-	return addIdToDataset(node, UNFOCUSED, id);
-}
-
-function removeFocused(node: HTMLElement, id: string) {
-	return removeIdFromDataset(node, FOCUSED, id);
-}
-
-function removeUnfocused(node: HTMLElement, id: string) {
-	return removeIdFromDataset(node, UNFOCUSED, id);
-}
-
-function nodeHasState(node: HTMLElement): boolean {
-	return !!node.dataset[FOCUSED] || !!node.dataset[UNFOCUSED];
-}
-
-const usedIds = new Set<string>();
-
-function generateId(): string {
-	const val = [...crypto.getRandomValues(new Uint8Array(7))]
-		.map(
-			(x, i) => (
-				(i = ((x / 255) * 61) | 0), String.fromCharCode(i + (i > 9 ? (i > 35 ? 61 : 55) : 48))
-			),
-		)
-		.join("");
-	if (usedIds.has(val)) {
-		return generateId();
-	}
-	usedIds.add(val);
-	return val;
-}
-
-export function focus(element: HTMLElement, opts: FocusOptions | boolean): FocusAction {
-	const id = generateId();
+export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): FocusAction {
+	const key: Key = {};
 	let isEnabled = false;
 	let assignAriaHidden = false;
+
 	if (typeof document === "undefined") {
-		return;
+		return { update: noop, destroy: noop };
+	}
+	if (!state) {
+		state = new WeakMap();
 	}
 
-	function assignStateToNode(node: Node) {
+	function nodeState(node: HTMLElement): NodeState {
+		let ns = state.get(node);
+		if (!ns) {
+			ns = new NodeState(node);
+			state.set(node, ns);
+		}
+		return ns;
+	}
+
+	function addLockToNodeState(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
-		const hasState = nodeHasState(node);
-		if (!hasState) {
-			node.dataset[ORIGINAL_TABINDEX] = node.tabIndex.toString();
-			if (node.getAttribute("tabindex") === null) {
-				node.dataset[HAS_TABINDEX] = "false";
-			} else {
-				node.dataset[HAS_TABINDEX] = "true";
-			}
-		}
-
-		let focused: string[] = [];
-		let unfocused: string[] = [];
-
-		const elementContainsNode = element.contains(node);
-
-		if (elementContainsNode) {
-			focused = assignFocused(node, id);
-			unfocused = dataIdList(node, UNFOCUSED);
-		} else {
-			unfocused = assignUnfocused(node, id);
-			focused = dataIdList(node, FOCUSED);
-		}
-
-		const override = node.dataset[OVERRIDE];
-
-		if (unfocused.length && !focused.length && override !== "focus") {
-			node.tabIndex = -1;
-		}
-		const originalIndex = +node.dataset[ORIGINAL_TABINDEX];
-		if (focused.length && node.tabIndex !== originalIndex) {
-			node.tabIndex = originalIndex;
-		}
-
-		if (assignAriaHidden) {
-			const nodeContainsElement = node.contains(element);
-
-			const existingHidden = node.getAttribute("aria-hidden");
-			if (!hasState) {
-				if (existingHidden) {
-					node.dataset[ARIA_HIDDEN] = existingHidden;
-				}
-			}
-			const ariaHiddenSet = node.dataset[ARIA_HIDDEN];
-
-			let hiddenBy: string[];
-			let shownBy: string[];
-			if (!nodeContainsElement && !elementContainsNode) {
-				hiddenBy = addIdToDataset(node, ARIA_HIDDEN_BY, id);
-				shownBy = dataIdList(node, ARIA_SHOWN_BY);
-			} else {
-				shownBy = addIdToDataset(node, ARIA_SHOWN_BY, id);
-				hiddenBy = dataIdList(node, ARIA_HIDDEN_BY);
-			}
-			if (hiddenBy.length > 0 && shownBy.length === 0 && node.dataset[OVERRIDE] !== "focus") {
-				node.setAttribute("aria-hidden", "true");
-			} else if (shownBy.length > 0 && node.dataset[OVERRIDE] !== "focus") {
-				const ariaHidden = node.getAttribute("aria-hidden");
-				if (ariaHiddenSet !== ariaHidden && ariaHidden !== "false") {
-					node.setAttribute("aria-hidden", "false");
-				}
-			}
-		}
+		const ns = nodeState(node);
+		ns.addLock(key, assignAriaHidden, node, lockNode);
+		ns.assignTabIndex(node);
+		ns.assignAriaHidden(node, assignAriaHidden);
 	}
-	function removeStateFromNode(node: Node) {
+	function removeLockFromNodeState(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
-		removeFocused(node, id);
-		removeUnfocused(node, id);
-		const { dataset } = node;
-		const hasState = nodeHasState(node);
-
-		if (!hasState) {
-			const tabindex = +node.dataset[ORIGINAL_TABINDEX];
-			delete dataset[ORIGINAL_TABINDEX];
-			if (dataset[HAS_TABINDEX] === "false") {
-				node.removeAttribute("tabindex");
-			} else {
-				node.tabIndex = tabindex;
-			}
-			delete dataset[HAS_TABINDEX];
-		} else if (!dataIdList(node, FOCUSED).length && node.dataset[OVERRIDE] !== "focus") {
-			node.tabIndex = -1;
+		const ns = state.get(node);
+		if (!ns) {
+			return;
 		}
-
-		if (assignAriaHidden) {
-			const hiddenBy = removeIdFromDataset(node, ARIA_HIDDEN_BY, id);
-			const shownBy = removeIdFromDataset(node, ARIA_SHOWN_BY, id);
-			const ariaHiddenSet = node.dataset[ARIA_HIDDEN];
-
-			if (shownBy.length > 0 && hiddenBy.length === 0) {
-				if (ariaHiddenSet) {
-					node.setAttribute("aria-hidden", ariaHiddenSet);
-				} else {
-					node.removeAttribute("aria-hidden");
-				}
-			}
-			if (!hasState) {
-				if (ariaHiddenSet) {
-					node.setAttribute("aria-hidden", ariaHiddenSet);
-				} else {
-					node.removeAttribute("aria-hidden");
-				}
-				delete dataset[ARIA_HIDDEN];
-				delete dataset[ARIA_HIDDEN_BY];
-				delete dataset[ARIA_SHOWN_BY];
-			}
-		}
+		ns.removeLock(key);
+		ns.assignTabIndex(node);
+		ns.assignAriaHidden(node, assignAriaHidden);
 	}
 
-	const assignStateToNodes = (nodes: NodeListOf<Node>) => nodes.forEach(assignStateToNode);
-
-	const removeStateFromNodes = (nodes: NodeListOf<Node>) => nodes.forEach(removeStateFromNode);
-	let unsubscribe: Unsubscriber;
+	const addLockToState = (nodes: NodeList) => nodes.forEach(addLockToNodeState);
+	const removeLockFromState = (nodes: NodeList) => nodes.forEach(removeLockFromNodeState);
+	let unsubscribe: Unsubscriber | undefined = undefined;
 
 	function handleAttributeChange(mutation: MutationRecord) {
 		const { target } = mutation;
 		if (!(target instanceof HTMLElement)) {
 			return;
 		}
-		const value = target.getAttribute(mutation.attributeName);
+		const attrName = mutation.attributeName;
+		if (attrName === null) {
+			return;
+		}
+		const value = target.getAttribute(attrName);
 		const { attributeName, oldValue } = mutation;
 		if (oldValue === value) {
 			return;
 		}
+
 		if (attributeName === "tabindex") {
-			if (oldValue !== null && value !== "-1" && value !== target.dataset[ORIGINAL_TABINDEX]) {
-				target.dataset[ORIGINAL_TABINDEX] = value;
-				target.tabIndex = +oldValue;
+			console.log(`tabindex changed from ${oldValue} to ${value}`);
+			const ns = state.get(target);
+			if (ns) {
+				if (ns.updateTabIndexOrigin(target, value, oldValue)) {
+					console.log("should be assigning");
+					ns.assignTabIndex(target);
+				}
 			}
 		}
 	}
 
 	function handleMutation(mutation: MutationRecord) {
 		if (mutation.type === "childList" && mutation.addedNodes) {
-			assignStateToNodes(mutation.addedNodes);
+			const { addedNodes } = mutation;
+			if (addedNodes !== null) {
+				addLockToState(addedNodes);
+			}
 			mutation.addedNodes.forEach((node) => {
-				assignStateToNodes(node.childNodes);
+				addLockToState(node.childNodes);
 			});
 		}
 		if (mutation.type === "attributes") {
@@ -279,24 +318,23 @@ export function focus(element: HTMLElement, opts: FocusOptions | boolean): Focus
 			isEnabled = opts;
 			assignAriaHidden = false;
 		} else {
-			isEnabled = opts?.enabled;
-			assignAriaHidden = opts?.assignAriaHidden;
+			isEnabled = !!opts?.enabled;
+			assignAriaHidden = !!opts?.assignAriaHidden;
 		}
-
 		if (!isEnabled) {
 			return destroy();
 		}
 		if (!unsubscribe) {
 			unsubscribe = mutations.subscribe(handleMutations);
 		}
-		setTimeout(() => assignStateToNodes(allNodes()), 0);
+		addLockToState(allBodyNodes());
 	}
 	function destroy() {
 		if (unsubscribe) {
 			unsubscribe();
 			unsubscribe = undefined;
 		}
-		removeStateFromNodes(allNodes());
+		removeLockFromState(allBodyNodes());
 	}
 	if (opts === true || (typeof opts === "object" && opts?.enabled)) {
 		update(opts);
