@@ -14,7 +14,8 @@
 		"accessibility",
 		"ada",
 		"svelte",
-		"sveltekit"
+		"sveltekit",
+		"aria"
 	],
 	"bugs": {
 		"url": "https://github.com/chanced/focus-svelte/issues"
