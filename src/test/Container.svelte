@@ -8,7 +8,6 @@
 
 	let container: HTMLDivElement;
 	let enabled = false;
-	let isMounted = false;
 	function toggleFocus() {
 		enabled = !enabled;
 	}

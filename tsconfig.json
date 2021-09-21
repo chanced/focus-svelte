@@ -2,11 +2,7 @@
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "es2020",
-		"lib": [
-			"es2020",
-			"DOM",
-			"WebWorker"
-		],
+		"lib": ["es2020", "DOM", "WebWorker"],
 		"target": "es2019",
 		"strict": true,
 		"noImplicitAny": true,
@@ -29,13 +25,7 @@
 		// "forceConsistentCasingInFileNames": false,
 		"baseUrl": ".",
 		"allowJs": true,
-		"checkJs": true,
+		"checkJs": true
 	},
-	"include": [
-		"src/**/*.d.ts",
-		"src/**/*.js",
-		"src/**/*.ts",
-		"src/**/*.svelte",
-		"src/**/*.json"
-	]
+	"include": ["src/**/*.d.ts", "src/**/*.js", "src/**/*.ts", "src/**/*.svelte", "src/**/*.json"]
 }
