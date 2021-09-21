@@ -1,9 +1,14 @@
+<script context="module">
+</script>
+
 <script lang="ts">
 	import { focus } from "../lib/action";
+	import { onMount } from "svelte";
+	export let seed = 10;
 
 	let container: HTMLDivElement;
 	let enabled = false;
-
+	let isMounted = false;
 	function toggleFocus() {
 		enabled = !enabled;
 	}
@@ -22,6 +27,12 @@
 		div.appendChild(node);
 		container.appendChild(div);
 	}
+
+	onMount(() => {
+		for (let i = 0; i < seed; i++) {
+			generate();
+		}
+	});
 </script>
 
 <div class="container" bind:this={container} use:focus={{ enabled, assignAriaHidden: true }}>
