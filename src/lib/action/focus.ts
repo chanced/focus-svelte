@@ -303,6 +303,7 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		if (attributeName === null) {
 			return;
 		}
+
 		const ns = state.get(node);
 		if (!ns) {
 			return;
@@ -338,6 +339,9 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		});
 	}
 	function handleMutation(mutation: MutationRecord) {
+		if (!state) {
+			return;
+		}
 		if (mutation.type === "childList" && mutation.addedNodes) {
 			handleNodesAdded(mutation);
 		}
