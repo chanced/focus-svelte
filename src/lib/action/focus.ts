@@ -252,6 +252,7 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 	let state: WeakMap<Node, NodeState>;
 	let isEnabled = false;
 	let assignAriaHidden = false;
+	let unsubscribe: Unsubscriber | undefined = undefined;
 
 	if (typeof document === "undefined") {
 		return { update: noop, destroy: noop };
@@ -275,10 +276,12 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		ns.assignTabIndex(node);
 		ns.assignAriaHidden(node, assignAriaHidden);
 	}
+
 	function removeLockFromNodeState(node: Node) {
 		if (!(node instanceof HTMLElement)) {
 			return;
 		}
+
 		const ns = state.get(node);
 		if (!ns) {
 			return;
@@ -290,7 +293,6 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 
 	const addLockToState = (nodes: NodeList) => nodes.forEach(addLockToNodeState);
 	const removeLockFromState = (nodes: NodeList) => nodes.forEach(removeLockFromNodeState);
-	let unsubscribe: Unsubscriber | undefined = undefined;
 
 	function handleAttributeChange(mutation: MutationRecord) {
 		const { target: node } = mutation;
@@ -359,7 +361,9 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		}
 		if (!unsubscribe) {
 			const unsubscribeFromMutations = mutations.subscribe(handleMutations);
-			const unsubscribeFromContext = context.subscribe(($state) => (state = $state));
+			const unsubscribeFromContext = context.subscribe(($state) => {
+				state = $state;
+			});
 			unsubscribe = () => {
 				unsubscribeFromMutations();
 				unsubscribeFromContext();
@@ -370,9 +374,9 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 	function destroy() {
 		if (unsubscribe) {
 			unsubscribe();
-			unsubscribe = undefined;
 		}
 		removeLockFromState(allBodyNodes());
+		unsubscribe = undefined;
 	}
 	if (opts === true || (typeof opts === "object" && opts?.enabled)) {
 		update(opts);
