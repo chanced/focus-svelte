@@ -113,7 +113,7 @@ class NodeState {
 			return;
 		}
 		if (this.focusedBy.size) {
-			if (this.tabIndexAssigned === -1 || node.tabIndex !== -1) {
+			if (this.tabIndexAssigned === -1 || node.tabIndex < 0) {
 				this.tabIndexAssigned = 0;
 			} else {
 				return;
