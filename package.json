@@ -28,6 +28,7 @@
 		"dev": "svelte-kit dev",
 		"build": "svelte-kit build",
 		"package": "npm run format && npm run lint && svelte-kit package",
+		"publish": "npm run package && npm publish ./package",
 		"playwright:test": "npx playwright test",
 		"test": "concurrently -k \"npm:dev\" \"npm:playwright:test\"",
 		"preview": "svelte-kit preview",
