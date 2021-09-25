@@ -1,13 +1,13 @@
 # focus-svelte
 
-Focus lock for [svelte](https://svelte.dev/) with zero dependencies.
+Focus lock for svelte with zero dependencies.
 
 ## Installation
 
 ```bash
 npm install -D focus-svelte
 # yarn add -D focus-svelte
-# pnpm install -D focus-svelte
+# pnpm add -D focus-svelte
 ```
 
 ## Example
