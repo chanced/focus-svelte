@@ -464,7 +464,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			}
 		}
 
-		if (trap.tabIndex === 0) {
+		if (trap.tabIndex > -1) {
 			trap.focus();
 		}
 		if (typeof document !== "undefined" && document.activeElement === trap) {
