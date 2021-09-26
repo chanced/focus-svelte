@@ -63,7 +63,7 @@
 		width: 100%;
 	}
 
-	:global:focus {
+	:global(:focus) {
 		background-color: #f0f0f0;
 	}
 </style>
