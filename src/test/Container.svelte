@@ -12,17 +12,30 @@
 		enabled = !enabled;
 	}
 	function generate() {
-		const list = ["div", "p", "input", "select", "textarea"];
+		const list = ["div", "p", "input", "select", "textarea", "details"];
 		const tag = list[Math.floor(Math.random() * list.length)];
 		const div = document.createElement("div");
 		const node = document.createElement(tag);
-		if (tag === "select") {
-			const opt = document.createElement("option");
-			opt.innerText = tag;
-			node.appendChild(opt);
-		} else {
-			node.innerText = tag;
+
+		switch (tag) {
+			case "select":
+				const opt = document.createElement("option");
+				opt.innerText = tag;
+				node.appendChild(opt);
+				break;
+			case "input":
+			case "textarea":
+				(node as HTMLInputElement).value = tag;
+				break;
+			case "details":
+				const summary = document.createElement("summary");
+				summary.innerText = "Details";
+				node.append(summary, tag);
+				break;
+			default:
+				node.innerText = tag;
 		}
+
 		div.appendChild(node);
 		container.appendChild(div);
 	}
@@ -34,7 +47,11 @@
 	});
 </script>
 
-<div class="container" bind:this={container} use:focus={{ enabled, assignAriaHidden: true }}>
+<div
+	class="container"
+	bind:this={container}
+	use:focus={{ enabled, assignAriaHidden: true, focusable: true }}
+>
 	<div style="display:flex">
 		<button on:click={generate}>generate element</button>
 		<button on:click={toggleFocus}> {enabled ? "unfocus" : "focus"}</button>
@@ -45,7 +62,8 @@
 	.container {
 		width: 100%;
 	}
-	.container:focus-within {
+
+	:global:focus {
 		background-color: #f0f0f0;
 	}
 </style>

@@ -2,9 +2,36 @@ import { readable } from "svelte/store";
 import type { Unsubscriber } from "svelte/store";
 
 export interface FocusOptions {
+	/**
+	 * enables focus
+	 */
 	enabled?: boolean;
+	/**
+	 * determines whether or not to assign `area-hidden="true"` to elements
+	 * outside of the trap
+	 */
 	assignAriaHidden?: boolean;
+	/**
+	 * focusable indicates whether or not to make the containing element
+	 * focusable
+	 */
+	focusable?: boolean;
+
+	/**
+	 * the element to focus upon.
+	 *
+	 * If the element is not tabbable and `focusable` is set to `true`, the
+	 * element with `use:focus` will be granted focus. If `focusable` is falsy,
+	 * the first tabbable child node will be granted focus.
+	 *
+	 * `string` values will be considered query selectors
+	 */
+	element?: HTMLElement | string;
 }
+
+type Options = FocusOptions & {
+	trap: HTMLElement;
+};
 
 const OVERRIDE = "focusOverride";
 const DATA_OVERRIDE = "data-focus-override";
@@ -34,6 +61,22 @@ class NodeState {
 		this.updateAriaHiddenOrigin(node);
 		this.tabIndexAssigned = null;
 		this.ariaHiddenAssignedValue = null;
+	}
+
+	tabbable(): boolean {
+		if (this.tabIndexAssigned !== null && this.tabIndexAssigned === -1) {
+			return false;
+		}
+		if (this.tabIndexAssigned !== null && this.tabIndexAssigned > -1) {
+			return true;
+		}
+		if (this.tabIndexOriginValue === -1) {
+			return false;
+		}
+		if (this.tabIndexOriginValue > -1) {
+			return true;
+		}
+		return false;
 	}
 
 	updateAriaHiddenOrigin(node: HTMLElement): boolean {
@@ -125,7 +168,7 @@ class NodeState {
 		if (this.focusedBy.size) {
 			if (this.tabIndexAssigned === -1 || node.tabIndex !== -1) {
 				this.tabIndexAssigned = 0;
-			} else {
+			} else if (this.tabIndexAssigned === null || node.tabIndex === this.tabIndexAssigned) {
 				return null;
 			}
 		} else if (this.unfocusedBy.size) {
@@ -155,32 +198,45 @@ class NodeState {
 			}
 		}
 		if (this.tabIndexAssigned !== null && node.tabIndex !== this.tabIndexAssigned) {
-			const value = this.tabIndexAssigned;
+			const { tabIndexAssigned } = this;
 			return () => {
-				node.tabIndex = value;
+				node.tabIndex = tabIndexAssigned;
 			};
 		}
 		return null;
 	}
-	addLock(key: Key, ariaHidden: boolean, node: HTMLElement, lockNode: HTMLElement) {
-		// presumably, any parent wouldn't be a focusable node.
-		// doing it this way makes it easier to compute aria-hidden
-		// as the calculations only need to run once
-		if (lockNode.contains(node) || node.contains(lockNode)) {
+	addTrap(key: Key, options: Options, node: HTMLElement): Operation[] {
+		const { trap, focusable, assignAriaHidden } = options;
+		if (node === trap) {
+			if (focusable) {
+				this.tabIndexAssigned = 0;
+				console.log(this);
+			}
 			this.focusedBy.add(key);
 			this.unfocusedBy.delete(key);
-			if (ariaHidden) {
+			this.shownBy.add(key);
+			this.hiddenBy.delete(key);
+
+			return this.operationsFor(node, !!assignAriaHidden);
+		}
+
+		if (trap.contains(node) || node.contains(trap)) {
+			this.focusedBy.add(key);
+			this.unfocusedBy.delete(key);
+			if (assignAriaHidden) {
 				this.shownBy.add(key);
 				this.hiddenBy.delete(key);
 			}
-		} else {
-			this.unfocusedBy.add(key);
-			this.focusedBy.delete(key);
-			if (ariaHidden) {
-				this.hiddenBy.add(key);
-				this.shownBy.delete(key);
-			}
+			return this.operationsFor(node, !!assignAriaHidden);
 		}
+
+		this.unfocusedBy.add(key);
+		this.focusedBy.delete(key);
+		if (assignAriaHidden) {
+			this.hiddenBy.add(key);
+			this.shownBy.delete(key);
+		}
+		return this.operationsFor(node, !!assignAriaHidden);
 	}
 
 	removeLock(key: Key) {
@@ -266,11 +322,14 @@ function noop() {}
 
 const exec = (op: Operation) => op && op();
 
-export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): FocusAction {
+export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAction {
 	const key = Object.freeze({});
 	let state: WeakMap<Node, NodeState>;
-	let isEnabled = false;
+	let enabled = false;
 	let assignAriaHidden = false;
+	let focusable = false;
+	let element: string | HTMLElement | undefined = undefined;
+	let options: Options;
 	let unsubscribe: Unsubscriber | undefined = undefined;
 
 	if (typeof document === "undefined") {
@@ -286,16 +345,15 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		return ns;
 	}
 
-	function addLockToNodeState(node: Node): Operation[] {
+	function addTrapToNodeState(node: Node): Operation[] {
 		if (!(node instanceof HTMLElement)) {
 			return [];
 		}
 		const ns = nodeState(node);
-		ns.addLock(key, assignAriaHidden, node, lockNode);
-		return ns.operationsFor(node, assignAriaHidden);
+		return ns.addTrap(key, options, node);
 	}
 
-	function removeLockFromNodeState(node: Node): (Operation | null)[] {
+	function removeTrapFromNodeState(node: Node): (Operation | null)[] {
 		if (!(node instanceof HTMLElement)) {
 			return [];
 		}
@@ -309,17 +367,18 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		return ns.operationsFor(node, assignAriaHidden);
 	}
 
-	function addLockToState(nodes: NodeList) {
+	function createTrap(nodes: NodeList) {
 		let ops: Operation[] = [];
 		nodes.forEach((node) => {
-			ops = ops.concat(addLockToNodeState(node));
+			ops = ops.concat(addTrapToNodeState(node));
 		});
 		ops.forEach((fn) => exec(fn));
 	}
-	function removeLockFromState(nodes: NodeList) {
+
+	function destroyTrap(nodes: NodeList) {
 		let ops: Operation[] = [];
 		nodes.forEach((node) => {
-			ops = ops.concat(removeLockFromNodeState(node));
+			ops = ops.concat(removeTrapFromNodeState(node));
 		});
 		ops.forEach((fn) => exec(fn));
 	}
@@ -367,9 +426,9 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 		if (addedNodes === null) {
 			return;
 		}
-		addLockToState(addedNodes);
+		createTrap(addedNodes);
 		mutation.addedNodes.forEach((node) => {
-			addLockToState(node.childNodes);
+			createTrap(node.childNodes);
 		});
 	}
 	function handleMutation(mutation: MutationRecord) {
@@ -386,17 +445,89 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 
 	const handleMutations = (mutations: MutationRecord[]) => mutations.forEach(handleMutation);
 
-	function update(opts: FocusOptions | boolean) {
-		if (typeof opts === "boolean") {
-			isEnabled = opts;
-			assignAriaHidden = false;
-		} else {
-			isEnabled = !!opts?.enabled;
-			assignAriaHidden = !!opts?.assignAriaHidden;
+	function assignFocus() {
+		if (element) {
+			let elem: Element | null = null;
+			if (typeof element === "string") {
+				try {
+					elem = trap.querySelector(element);
+				} catch (err) {
+					elem = null;
+				}
+			}
+			if (element instanceof Element) {
+				elem = element;
+			}
+
+			if (elem && elem instanceof HTMLElement) {
+				elem.focus();
+				return;
+			}
 		}
-		if (!isEnabled) {
+
+		if (trap.tabIndex === 0) {
+			trap.focus();
+			return;
+		}
+		const nodes = trap.querySelectorAll("*");
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes.item(i);
+			const ns = state.get(node);
+			if (!ns) {
+				continue;
+			}
+			if (ns.tabbable() && node instanceof HTMLElement) {
+				node.focus();
+				return;
+			}
+		}
+	}
+
+	function blurFocus(): boolean {
+		const current = document.activeElement;
+		if (current instanceof HTMLElement) {
+			const ns = state.get(current);
+			if (ns && !ns.tabbable()) {
+				current.blur();
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+	function focusFirstElement() {
+		if (!state) {
+			return;
+		}
+		assignFocus();
+	}
+
+	function update(opts: FocusOptions | boolean) {
+		const previouslyEnabled = enabled;
+		if (typeof opts === "boolean") {
+			enabled = opts;
+			assignAriaHidden = false;
+			opts = {};
+		} else if (typeof opts == "object") {
+			enabled = !!opts?.enabled;
+		} else {
+			enabled = false;
+			opts = {};
+		}
+		assignAriaHidden = !!opts?.assignAriaHidden;
+		focusable = !!opts.focusable;
+		element = opts.element;
+		options = {
+			assignAriaHidden,
+			enabled,
+			focusable,
+			trap,
+			element,
+		};
+		if (!enabled) {
 			return destroy();
 		}
+
 		if (!unsubscribe) {
 			const unsubscribeFromMutations = mutations.subscribe(handleMutations);
 			const unsubscribeFromContext = context.subscribe(($state) => {
@@ -407,13 +538,20 @@ export function focus(lockNode: HTMLElement, opts: FocusOptions | boolean): Focu
 				unsubscribeFromContext();
 			};
 		}
-		addLockToState(allBodyNodes());
+
+		createTrap(allBodyNodes());
+
+		if (!previouslyEnabled) {
+			blurFocus();
+			focusFirstElement();
+		}
 	}
 	function destroy() {
 		if (unsubscribe) {
 			unsubscribe();
 		}
-		removeLockFromState(allBodyNodes());
+		destroyTrap(allBodyNodes());
+
 		unsubscribe = undefined;
 	}
 	if (opts === true || (typeof opts === "object" && opts?.enabled)) {
