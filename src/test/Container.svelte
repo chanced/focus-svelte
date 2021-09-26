@@ -1,6 +1,3 @@
-<script context="module">
-</script>
-
 <script lang="ts">
 	import { focus } from "../lib/action";
 	import { onMount } from "svelte";
