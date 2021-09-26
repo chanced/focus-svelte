@@ -16,18 +16,14 @@
 
 		switch (tag) {
 			case "select":
-				const opt = document.createElement("option");
-				opt.innerText = tag;
-				node.appendChild(opt);
+				node.innerHTML = `<option>${tag}</option>`;
 				break;
 			case "input":
 			case "textarea":
 				(node as HTMLInputElement).value = tag;
 				break;
 			case "details":
-				const summary = document.createElement("summary");
-				summary.innerText = "Details";
-				node.append(summary, tag);
+				node.innerHTML = `<summary>Summary</summary>\n${tag}`;
 				break;
 			default:
 				node.innerText = tag;
