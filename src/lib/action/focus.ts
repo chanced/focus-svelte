@@ -527,19 +527,24 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		if (!enabled) {
 			return destroy();
 		}
+		let unsubscribeFromMutations: Unsubscriber;
+		let unsubscribeFromState: Unsubscriber;
 
 		if (!unsubscribe) {
-			const unsubscribeFromMutations = mutations.subscribe(handleMutations);
-			const unsubscribeFromContext = context.subscribe(($state) => {
+			unsubscribeFromState = context.subscribe(($state) => {
 				state = $state;
 			});
-			unsubscribe = () => {
-				unsubscribeFromMutations();
-				unsubscribeFromContext();
-			};
 		}
 
 		createTrap(allBodyNodes());
+
+		if (!unsubscribe) {
+			unsubscribeFromMutations = mutations.subscribe(handleMutations);
+			unsubscribe = () => {
+				unsubscribeFromMutations();
+				unsubscribeFromState();
+			};
+		}
 
 		if (!previouslyEnabled) {
 			blurFocus();
