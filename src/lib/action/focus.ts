@@ -458,7 +458,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 				elem = element;
 			}
 
-			if (elem && elem instanceof HTMLElement) {
+			if (elem && elem instanceof HTMLElement && elem.tabIndex > -1) {
 				elem.focus();
 				return;
 			}
@@ -466,8 +466,11 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 		if (trap.tabIndex === 0) {
 			trap.focus();
+		}
+		if (typeof document !== "undefined" && document.activeElement === trap) {
 			return;
 		}
+
 		const nodes = trap.querySelectorAll("*");
 		for (let i = 0; i < nodes.length; i++) {
 			const node = nodes.item(i);
@@ -482,23 +485,14 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		}
 	}
 
-	function blurFocus(): boolean {
+	function blurFocus() {
 		const current = document.activeElement;
 		if (current instanceof HTMLElement) {
 			const ns = state.get(current);
 			if (ns && !ns.tabbable()) {
 				current.blur();
-				return true;
 			}
-			return false;
 		}
-		return true;
-	}
-	function focusFirstElement() {
-		if (!state) {
-			return;
-		}
-		assignFocus();
 	}
 
 	function update(opts: FocusOptions | boolean) {
@@ -547,16 +541,23 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 		if (!previouslyEnabled) {
 			blurFocus();
-			focusFirstElement();
+			assignFocus();
 		}
 	}
 	function destroy() {
 		if (unsubscribe) {
 			unsubscribe();
+			unsubscribe = undefined;
 		}
 		destroyTrap(allBodyNodes());
-
-		unsubscribe = undefined;
+		if (typeof document !== "undefined") {
+			const { activeElement } = document;
+			if (trap === activeElement || trap.contains(activeElement)) {
+				if (activeElement instanceof HTMLElement) {
+					activeElement.blur();
+				}
+			}
+		}
 	}
 	if (opts === true || (typeof opts === "object" && opts?.enabled)) {
 		update(opts);
