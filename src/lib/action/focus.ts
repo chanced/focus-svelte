@@ -210,7 +210,6 @@ class NodeState {
 		if (node === trap) {
 			if (focusable) {
 				this.tabIndexAssigned = 0;
-				console.log(this);
 			}
 			this.focusedBy.add(key);
 			this.unfocusedBy.delete(key);
