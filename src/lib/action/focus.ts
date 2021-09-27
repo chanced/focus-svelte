@@ -27,10 +27,17 @@ export interface FocusOptions {
 	 * `string` values will be considered query selectors
 	 */
 	element?: HTMLElement | string;
+
+	/**
+	 * focusDelay can either be a number or an async function which resolves
+	 * when it is appropriate to set the focus
+	 */
+	focusDelay?: number | (() => Promise<void>);
 }
 
-type Options = FocusOptions & {
+type Options = Omit<FocusOptions, "focusDelay"> & {
 	trap: HTMLElement;
+	focusDelay: () => Promise<void>;
 };
 
 const OVERRIDE = "focusOverride";
@@ -441,10 +448,10 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			handleAttributeChange(mutation);
 		}
 	}
-
 	const handleMutations = (mutations: MutationRecord[]) => mutations.forEach(handleMutation);
 
-	function assignFocus() {
+	async function setFocus() {
+		await options.focusDelay();
 		if (element) {
 			let elem: Element | null = null;
 			if (typeof element === "string") {
@@ -510,12 +517,23 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		assignAriaHidden = !!opts?.assignAriaHidden;
 		focusable = !!opts.focusable;
 		element = opts.element;
+		let { focusDelay } = opts;
+
+		if (typeof focusDelay === "number") {
+			const ms = focusDelay;
+			focusDelay = () => new Promise<void>((res) => setTimeout(res, ms));
+		}
+		if (!focusDelay) {
+			focusDelay = () => Promise.resolve();
+		}
+
 		options = {
 			assignAriaHidden,
 			enabled,
 			focusable,
 			trap,
 			element,
+			focusDelay,
 		};
 		if (!enabled) {
 			return destroy();
@@ -541,7 +559,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 		if (!previouslyEnabled) {
 			blurFocus();
-			assignFocus();
+			setFocus();
 		}
 	}
 	function destroy() {
