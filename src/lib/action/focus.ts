@@ -336,7 +336,10 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 	let focusable = false;
 	let element: string | HTMLElement | undefined = undefined;
 	let options: Options;
-	let unsubscribe: Unsubscriber | undefined = undefined;
+	let unsubscribeFromMutations: Unsubscriber | undefined = undefined;
+	let unsubscribeFromState: Unsubscriber | undefined = undefined;
+
+	let previousElement: HTMLElement | undefined = undefined;
 
 	if (typeof document === "undefined") {
 		return { update: noop, destroy: noop };
@@ -363,7 +366,9 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		if (!(node instanceof HTMLElement)) {
 			return [];
 		}
-
+		if (!state) {
+			return [];
+		}
 		const ns = state.get(node);
 		if (!ns) {
 			return [];
@@ -452,6 +457,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 	async function setFocus() {
 		await options.focusDelay();
+
 		if (element) {
 			let elem: Element | null = null;
 			if (typeof element === "string") {
@@ -467,6 +473,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 			if (elem && elem instanceof HTMLElement && elem.tabIndex > -1) {
 				elem.focus();
+				previousElement = elem;
 				return;
 			}
 		}
@@ -475,6 +482,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			trap.focus();
 		}
 		if (typeof document !== "undefined" && document.activeElement === trap) {
+			previousElement = trap;
 			return;
 		}
 
@@ -487,6 +495,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			}
 			if (ns.tabbable() && node instanceof HTMLElement) {
 				node.focus();
+				previousElement = node;
 				return;
 			}
 		}
@@ -502,8 +511,13 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		}
 	}
 
+	const subscribeToState = () =>
+		context.subscribe(($state) => {
+			state = $state;
+		});
 	function update(opts: FocusOptions | boolean) {
 		const previouslyEnabled = enabled;
+
 		if (typeof opts === "boolean") {
 			enabled = opts;
 			assignAriaHidden = false;
@@ -538,36 +552,36 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		if (!enabled) {
 			return destroy();
 		}
-		let unsubscribeFromMutations: Unsubscriber;
-		let unsubscribeFromState: Unsubscriber;
+		if (!state && unsubscribeFromState) {
+			unsubscribeFromState();
+			unsubscribeFromState = subscribeToState();
+		}
 
-		if (!unsubscribe) {
-			unsubscribeFromState = context.subscribe(($state) => {
-				state = $state;
-			});
+		if (!unsubscribeFromState) {
+			unsubscribeFromState = subscribeToState();
 		}
 
 		createTrap(allBodyNodes());
 
-		if (!unsubscribe) {
+		if (!unsubscribeFromMutations) {
 			unsubscribeFromMutations = mutations.subscribe(handleMutations);
-			unsubscribe = () => {
-				unsubscribeFromMutations();
-				unsubscribeFromState();
-			};
 		}
 
-		if (!previouslyEnabled) {
+		if (
+			!previouslyEnabled ||
+			!previousElement ||
+			(element !== undefined && element !== previousElement)
+		) {
 			blurFocus();
 			setFocus();
 		}
 	}
 	function destroy() {
-		if (unsubscribe) {
-			unsubscribe();
-			unsubscribe = undefined;
-		}
 		destroyTrap(allBodyNodes());
+		if (unsubscribeFromState) {
+			unsubscribeFromState();
+			unsubscribeFromState = undefined;
+		}
 		if (typeof document !== "undefined") {
 			const { activeElement } = document;
 			if (trap === activeElement || trap.contains(activeElement)) {
