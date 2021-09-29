@@ -1,4 +1,5 @@
 import { readable } from "svelte/store";
+import { tick } from "svelte";
 import type { Unsubscriber } from "svelte/store";
 
 export interface FocusOptions {
@@ -538,7 +539,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			focusDelay = () => new Promise<void>((res) => setTimeout(res, ms));
 		}
 		if (!focusDelay) {
-			focusDelay = () => Promise.resolve();
+			focusDelay = tick;
 		}
 
 		options = {
@@ -577,7 +578,13 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		}
 	}
 	function destroy() {
+		if (unsubscribeFromMutations) {
+			unsubscribeFromMutations();
+			unsubscribeFromMutations = undefined;
+		}
+
 		destroyTrap(allBodyNodes());
+
 		if (unsubscribeFromState) {
 			unsubscribeFromState();
 			unsubscribeFromState = undefined;
