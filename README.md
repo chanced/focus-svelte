@@ -1,6 +1,6 @@
-# :lock: focus-svelte 
+# focus-svelte 
 
-Focus lock for svelte with zero dependencies. 
+Focus :lock: for svelte with zero dependencies. 
 
 ## Installation
 
