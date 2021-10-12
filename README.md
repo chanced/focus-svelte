@@ -16,20 +16,18 @@ npm install -D focus-svelte
 
 ## Description
 
-#### tabindex
-
-focus-svelte works a bit differently than other focus traps I've encounted.
+focus-svelte works a bit differently than other focus lock's I've encounted.
 Rather than using an event listener to track user activity and overriding the
 default behavior of the browser, the DOM is manipulated instead. All elements
-outside of an active focus trap's descendants or ancestory have their
+outside of an active focus lock's descendants or ancestory have their
 `tabindex` set to `-1` if it was `0` or greater previously.
 
-To keep track of changes after the trap is enabled, a `MutationObserver` monitors
-the DOM for updates. Once all focus traps are disabled or removed, the `MutationObserver`
-is stopped and the elements' properties are reset. If a focus trap later becomes active,
+To keep track of changes after the lock is enabled, a `MutationObserver` monitors
+the DOM for updates. Once all focus locks are disabled or removed, the `MutationObserver`
+is stopped and the elements' properties are reset. If a focus lock later becomes active,
 the `MutationObserver` is restarted and nodes are decorated accordingly.
 
-When a trap becomes active for the first time, the `HTMLElement` that is assigned focus is
+When a lock becomes active for the first time, the `HTMLElement` that is assigned focus is
 dependent upon the options passed to the action / component.
 
 If `element` is assigned and is tabbable, it will be focused upon. If `element` is `undefined`
@@ -44,11 +42,11 @@ There is both an action and a component that can be utilized.
 
 | option             | description                                                                                                                                                                                                                                                                     | type                            | default                                  |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- | ---------------------------------------- |
-| `element`          | If `element` is assigned and is tabbable, it will be focused upon when the trap is enabled. `string` values will be considered a query selector.                                                                                                                                | `Element \| string`             | `undefined`                              |
-| `focusable`        | The `HTMLElement` the action is assigned to gets a `tabindex` of `0` when the trap becomes active                                                                                                                                                                               | `boolean`                       | `false`                                  |
+| `element`          | If `element` is assigned and is tabbable, it will be focused upon when the lock is enabled. `string` values will be considered a query selector.                                                                                                                                | `Element \| string`             | `undefined`                              |
+| `focusable`        | The `HTMLElement` the action is assigned to gets a `tabindex` of `0` when the lock becomes active                                                                                                                                                                               | `boolean`                       | `false`                                  |
 | `focusDelay`       | can either be a number of ms to wait or an async function that resolves (`void`) when the focus of an element should be set.                                                                                                                                                    | `number \| () => Promise<void>` | [tick](https://svelte.dev/tutorial/tick) |
-| `assignAriaHidden` | When a focus trap becomes enabled and is `true`, all elements outside of an active trap or their ancestory have their [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute) attribute set to `"true"`. | `boolean`                       | `false`                                  |
-| `enabled`          | If `true`, the focus trap becomes active.                                                                                                                                                                                                                                       | `boolean`                       | `false`                                  |
+| `assignAriaHidden` | When a focus lock becomes enabled and is `true`, all elements outside of an active lock or their ancestory have their [aria-hidden](https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_aria-hidden_attribute) attribute set to `"true"`. | `boolean`                       | `false`                                  |
+| `enabled`          | If `true`, the focus lock becomes active.                                                                                                                                                                                                                                       | `boolean`                       | `false`                                  |
 
 ### action
 
