@@ -1,4 +1,4 @@
-# focus-svelte :lock:
+# :lock: focus-svelte 
 
 Focus lock for svelte with zero dependencies. 
 
