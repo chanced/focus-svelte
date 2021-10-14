@@ -6,8 +6,9 @@
 	export let focusable = false;
 	export let focusDelay: number | (() => Promise<void>) | undefined = undefined;
 	export let preventScroll = false;
+	export let delay: number | (() => Promise<void>) | undefined = undefined;
 </script>
 
-<div use:focus={{ enabled, assignAriaHidden, element, focusable, focusDelay, preventScroll }}>
+<div use:focus={{ enabled, assignAriaHidden, element, focusable, focusDelay, preventScroll, delay }}>
 	<slot />
 </div>
