@@ -9,6 +9,8 @@
 	export let delay: number | (() => Promise<void>) | undefined = undefined;
 </script>
 
-<div use:focus={{ enabled, assignAriaHidden, element, focusable, focusDelay, preventScroll, delay }}>
+<div
+	use:focus={{ enabled, assignAriaHidden, element, focusable, focusDelay, preventScroll, delay }}
+>
 	<slot />
 </div>
