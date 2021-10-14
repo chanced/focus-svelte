@@ -30,15 +30,31 @@ export interface FocusOptions {
 	element?: HTMLElement | string;
 
 	/**
-	 * focusDelay can either be a number or an async function which resolves
-	 * when it is appropriate to set the focus
+	 * focusDelay can either be a number or a function which resolves with a promise
+	 * when it is appropriate to set focus on the target Element
+	 *
+	 * Defaults to `tick`
 	 */
 	focusDelay?: number | (() => Promise<void>);
+	/**
+	 * delay can either be a number or an async function which resolves
+	 * when it is appropriate to set assign tab indexes and ariaHidden (if applicable)
+	 *
+	 * Defaults to `tick`
+	 */
+	delay?: number | (() => Promise<void>);
+	/** A Boolean value indicating whether or not the browser should scroll the
+	 * document to bring the newly-focused element into view. A value of false
+	 * for preventScroll (the default) means that the browser will scroll the
+	 * element into view after focusing it. If preventScroll is set to true, no
+	 * scrolling will occur. */
+	preventScroll?: boolean;
 }
 
-type Options = Omit<FocusOptions, "focusDelay"> & {
+type Options = Omit<FocusOptions, "focusDelay" | "delay"> & {
 	trap: HTMLElement;
 	focusDelay: () => Promise<void>;
+	delay: () => Promise<void>;
 };
 
 const OVERRIDE = "focusOverride";
@@ -360,6 +376,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			return [];
 		}
 		const ns = nodeState(node);
+
 		return ns.addTrap(key, options, node);
 	}
 
@@ -379,23 +396,25 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		return ns.operationsFor(node, assignAriaHidden);
 	}
 
-	function createTrap(nodes: NodeList) {
+	async function createTrap(nodes: NodeList) {
 		let ops: Operation[] = [];
 		nodes.forEach((node) => {
 			ops = ops.concat(addTrapToNodeState(node));
 		});
+		await options.delay();
 		ops.forEach((fn) => exec(fn));
 	}
 
-	function destroyTrap(nodes: NodeList) {
+	async function destroyTrap(nodes: NodeList) {
 		let ops: Operation[] = [];
 		nodes.forEach((node) => {
 			ops = ops.concat(removeTrapFromNodeState(node));
 		});
+		await options.delay();
 		ops.forEach((fn) => exec(fn));
 	}
 
-	function handleAttributeChange(mutation: MutationRecord) {
+	async function handleAttributeChange(mutation: MutationRecord) {
 		const { target: node } = mutation;
 		if (!(node instanceof HTMLElement)) {
 			return;
@@ -430,6 +449,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		if (!ops) {
 			return;
 		}
+		await options.delay();
 		ops.forEach((op) => exec(op));
 	}
 
@@ -473,7 +493,8 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			}
 
 			if (elem && elem instanceof HTMLElement && elem.tabIndex > -1) {
-				elem.focus();
+				const { preventScroll } = options;
+				elem.focus({ preventScroll });
 				previousElement = elem;
 				return;
 			}
@@ -532,14 +553,22 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		assignAriaHidden = !!opts?.assignAriaHidden;
 		focusable = !!opts.focusable;
 		element = opts.element;
-		let { focusDelay } = opts;
+		let { focusDelay, delay } = opts;
 
 		if (typeof focusDelay === "number") {
 			const ms = focusDelay;
 			focusDelay = () => new Promise<void>((res) => setTimeout(res, ms));
 		}
+
+		if (typeof delay === "number") {
+			const ms = delay;
+			delay = () => new Promise<void>((res) => setTimeout(res, ms));
+		}
 		if (!focusDelay) {
 			focusDelay = tick;
+		}
+		if (!delay) {
+			delay = tick;
 		}
 
 		options = {
@@ -549,6 +578,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			trap,
 			element,
 			focusDelay,
+			delay,
 		};
 		if (!enabled) {
 			return destroy();
