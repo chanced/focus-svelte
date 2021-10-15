@@ -16,7 +16,7 @@ npm install -D focus-svelte
 
 ## Description
 
-focus-svelte works a bit differently than other focus lock's I've encounted.
+focus-svelte works a bit differently than other focus locks I've encounted.
 Rather than using an event listener to track user activity and overriding the
 default behavior of the browser, the DOM is manipulated instead. All elements
 outside of an active focus lock's descendants or ancestory have their
