@@ -94,13 +94,7 @@ class NodeState {
 		if (this.tabIndexAssigned !== null && this.tabIndexAssigned > -1) {
 			return true;
 		}
-		if (this.tabIndexOriginValue === -1) {
-			return false;
-		}
-		if (this.tabIndexOriginValue > -1) {
-			return true;
-		}
-		return false;
+		return this.tabIndexOriginValue > -1
 	}
 
 	updateAriaHiddenOrigin(node: HTMLElement): boolean {
