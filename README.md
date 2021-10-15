@@ -23,9 +23,9 @@ outside of an active focus lock's descendants or ancestory have their
 `tabindex` set to `-1` if it was `0` or greater previously.
 
 To keep track of changes after the lock is enabled, a `MutationObserver` monitors
-the DOM for updates. Once all focus locks are disabled or removed, the `MutationObserver`
+the DOM for updates. Once all focus locks are disabled or removed, the observer
 is stopped and the elements' properties are reset. If a focus lock later becomes active,
-the `MutationObserver` is restarted and nodes are decorated accordingly.
+the observer is restarted and nodes are decorated accordingly.
 
 When a lock becomes active for the first time, the `HTMLElement` that is assigned focus is
 dependent upon the options passed to the action / component.
@@ -110,7 +110,7 @@ There is both an action and a component that can be utilized.
 <input value={enabled ? "can't tab here" : "can be tabbed into!"} />
 ```
 
-**Note**: As the action needs an `HTMLElement`, the component version wraps your content within a `div`.
+**Note**: As the action needs an `HTMLElement`, the component version wraps your content with a `div`.
 
 ### override
 
