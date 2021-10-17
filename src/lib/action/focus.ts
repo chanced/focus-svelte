@@ -94,7 +94,7 @@ class NodeState {
 		if (this.tabIndexAssigned !== null && this.tabIndexAssigned > -1) {
 			return true;
 		}
-		return this.tabIndexOriginValue > -1
+		return this.tabIndexOriginValue > -1;
 	}
 
 	updateAriaHiddenOrigin(node: HTMLElement): boolean {
@@ -472,6 +472,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 
 	async function setFocus() {
 		await options.focusDelay();
+		const { preventScroll } = options;
 
 		if (element) {
 			let elem: Element | null = null;
@@ -487,7 +488,6 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			}
 
 			if (elem && elem instanceof HTMLElement && elem.tabIndex > -1) {
-				const { preventScroll } = options;
 				elem.focus({ preventScroll });
 				previousElement = elem;
 				return;
@@ -495,7 +495,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		}
 
 		if (trap.tabIndex > -1) {
-			trap.focus();
+			trap.focus({ preventScroll });
 		}
 		if (typeof document !== "undefined" && document.activeElement === trap) {
 			previousElement = trap;
@@ -510,7 +510,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 				continue;
 			}
 			if (ns.tabbable() && node instanceof HTMLElement) {
-				node.focus();
+				node.focus({ preventScroll });
 				previousElement = node;
 				return;
 			}
