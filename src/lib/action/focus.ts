@@ -547,7 +547,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 		assignAriaHidden = !!opts?.assignAriaHidden;
 		focusable = !!opts.focusable;
 		element = opts.element;
-		let { focusDelay, delay } = opts;
+		let { focusDelay, delay, preventScroll } = opts;
 
 		if (typeof focusDelay === "number") {
 			const ms = focusDelay;
@@ -573,6 +573,7 @@ export function focus(trap: HTMLElement, opts: FocusOptions | boolean): FocusAct
 			element,
 			focusDelay,
 			delay,
+            		preventScroll,
 		};
 		if (!enabled) {
 			return destroy();
