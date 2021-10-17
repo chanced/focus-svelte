@@ -1,8 +1,12 @@
 <script lang="ts">
 	import { focus } from "../lib/action";
 	import { onMount } from "svelte";
+	export let title: string;
 	export let seed = 10;
-
+	export let assignAriaHidden = false;
+	export let preventScroll = false;
+	export let focusable = true;
+	export let element: HTMLElement | string | undefined = undefined;
 	let container: HTMLDivElement;
 	let enabled = false;
 	function toggleFocus() {
@@ -37,15 +41,19 @@
 		for (let i = 0; i < seed; i++) {
 			generate();
 		}
+		const last = document.createElement("div");
+		last.innerHTML = `<input class="lastInput">`;
+		container.append(last);
 	});
 </script>
 
 <div
 	class="container"
 	bind:this={container}
-	use:focus={{ enabled, assignAriaHidden: true, focusable: true }}
+	use:focus={{ enabled, preventScroll, assignAriaHidden, focusable, element }}
 >
-	<div style="display:flex">
+	<h2>{title}</h2>
+	<div style="display:flex; margin-bottom: 1rem">
 		<button on:click={generate}>generate element</button>
 		<button on:click={toggleFocus}> {enabled ? "unfocus" : "focus"}</button>
 	</div>
