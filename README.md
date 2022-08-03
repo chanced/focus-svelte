@@ -64,7 +64,7 @@ There is both an action and a component that can be utilized.
 <button on:click="{toggleFocus}">{enabled ? "disable" : "enable"} focus</button>
 
 <div use:focus="{enabled}">
-	<input value={enabled ? "focus is traped here" : "regular tabbable input"} />
+	<input value={enabled ? "focus is trapped here" : "regular tabbable input"} />
 </div>
 
 <input value={enabled ? "can't tab here" : "can be tabbed into!"} />
@@ -84,7 +84,7 @@ There is both an action and a component that can be utilized.
 <button on:click="{toggleFocus}">{enabled ? "disable" : "enable"} focus</button>
 
 <div use:focus="{{enabled, assignAriaHidden: true}}">
-	<input value={enabled ? "focus is traped here" : "regular tabbable input"} />
+	<input value={enabled ? "focus is trapped here" : "regular tabbable input"} />
 </div>
 
 <input value={enabled ? "can't tab here" : "can be tabbed into!"} />
@@ -104,7 +104,7 @@ There is both an action and a component that can be utilized.
 <button on:click="{toggleFocus}">{enabled ? "disable" : "enable"} focus</button>
 
 <Focus {enabled} assignAriaHidden="{true}">
-	<input value={enabled ? "focus is traped here" : "regular tabbable input"} />
+	<input value={enabled ? "focus is trapped here" : "regular tabbable input"} />
 </Focus>
 
 <input value={enabled ? "can't tab here" : "can be tabbed into!"} />
