@@ -1,6 +1,6 @@
-# focus-svelte :lock:
+# focus-svelte :mouse_trap:
 
-Focus lock for svelte with zero dependencies.
+Focus trap for svelte with zero dependencies.
 
 ## Installation
 
@@ -16,18 +16,18 @@ npm install -D focus-svelte
 
 ## Description
 
-focus-svelte works a bit differently than other focus locks I've encounted.
+focus-svelte works a bit differently than other focus traps I've encounted.
 Rather than using an event listener to track user activity and overriding the
 default behavior of the browser, the DOM is manipulated instead. All elements
-outside of an active focus lock's descendants or ancestory have their
+outside of an active focus trap's descendants or ancestory have their
 `tabindex` set to `-1` if it was `0` or greater previously.
 
-To keep track of changes after the lock is enabled, a `MutationObserver` monitors
-the DOM for updates. Once all focus locks are disabled or removed, the observer
-is stopped and the elements' properties are reset. If a focus lock later becomes active,
+To keep track of changes after the trap is enabled, a `MutationObserver` monitors
+the DOM for updates. Once all focus traps are disabled or removed, the observer
+is stopped and the elements' properties are reset. If a focus trap later becomes active,
 the observer is restarted and nodes are decorated accordingly.
 
-When a lock becomes active for the first time, the `HTMLElement` that is assigned focus is
+When a trap becomes active for the first time, the `HTMLElement` that is assigned focus is
 dependent upon the options passed to the action / component.
 
 If `element` is assigned and is tabbable, it will be focused upon. If `element` is `undefined`
