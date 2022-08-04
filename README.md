@@ -17,7 +17,7 @@ npm install -D focus-svelte
 ## Description
 
 focus-svelte works a bit differently than other focus traps I've encounted.
-Rather than using an event listener to track user activity and overriding the
+Rather than using an event listener to track user activity and override the
 default behavior of the browser, the DOM is manipulated instead. All elements
 outside of an active focus trap's descendants or ancestory have their
 `tabindex` set to `-1` if it was `0` or greater previously.
@@ -28,10 +28,10 @@ is stopped and the elements' properties are reset. If a focus trap later becomes
 the observer is restarted and nodes are decorated accordingly.
 
 When a trap becomes active for the first time, the `HTMLElement` that is assigned focus is
-dependent upon the options passed to the action / component.
+determined by the configuration options passed to the component or action. 
 
-If `element` is assigned and is tabbable, it will be focused upon. If `element` is `undefined`
-or not tabbable and `focusable` is `true`, the `HTMLElement` with `use:focus` is granted focus.
+If `element` is assigned and is tabbable, it will be focused upon. 
+If `element` is `undefined` or not tabbable and `focusable` is `true`, the `HTMLElement` with `use:focus` is granted focus.
 Finally, if neither of those conditions are met, focus will be set on the first tabbable element.
 
 ## Usage
