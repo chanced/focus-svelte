@@ -32,7 +32,7 @@ determined by the configuration options passed to the component or action.
 - If `element` is 
 assigned and is tabbable, it will be focused upon. 
 - If `element` is `undefined` or not tabbable and `focusable` is `true`, the `HTMLElement` with `use:focus` is granted focus.
-- Finally, if neither of those conditions are met, focus will be set on the first tabbable element.
+- If neither of the previous conditions are met, focus will be set on the first tabbable element.
 
 ## Usage
 
