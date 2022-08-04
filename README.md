@@ -1,4 +1,4 @@
-# focus-svelte :mouse_trap:
+# :mouse_trap: focus-svelte 
 
 Focus trap for svelte with zero dependencies.
 
