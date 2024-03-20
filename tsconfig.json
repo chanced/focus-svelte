@@ -12,7 +12,7 @@
 		"strictPropertyInitialization": true,
 		"noImplicitThis": true,
 		"alwaysStrict": true,
-		"importsNotUsedAsValues": "error",
+		"verbatimModuleSyntax": true,
 		"isolatedModules": true,
 		"resolveJsonModule": true,
 		/**
