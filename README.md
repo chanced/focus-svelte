@@ -1,4 +1,4 @@
-# :mouse_trap: focus-svelte 
+# :mouse_trap: focus-svelte
 
 Focus trap for svelte with zero dependencies.
 
@@ -28,9 +28,10 @@ is stopped and the elements' properties are reset. If a focus trap later becomes
 the observer is restarted and nodes are decorated accordingly.
 
 When a trap becomes active for the first time, the `HTMLElement` that is assigned focus is
-determined by the configuration options passed to the component or action. 
-- If `element` is 
-assigned and is tabbable, it will be focused upon. 
+determined by the configuration options passed to the component or action.
+
+- If `element` is
+  assigned and is tabbable, it will be focused upon.
 - If `element` is `undefined` or not tabbable and `focusable` is `true`, the `HTMLElement` with `use:focus` is granted focus.
 - If neither of the previous conditions are met, focus will be placed on the first tabbable element.
 

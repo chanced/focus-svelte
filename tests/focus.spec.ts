@@ -7,10 +7,13 @@ test("focus sets tab indexes appropriately", async ({ page }) => {
 	await expect(page.locator("input")).toHaveCount(5);
 
 	const originalTabIndexes = await page.locator("input").evaluateAll((ee) =>
-		ee.reduce((acc, e) => {
-			acc[e.id] = e.tabIndex;
-			return acc;
-		}, {} as Record<string, number>),
+		ee.reduce(
+			(acc, e) => {
+				acc[e.id] = e.tabIndex;
+				return acc;
+			},
+			{} as Record<string, number>,
+		),
 	);
 	await page.click("#toggle");
 
